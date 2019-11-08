@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ninja Gold</title>
+    <style>
+        body {
+            background-color:lightblue !important;
+            padding: 30px;
+            margin: 0px 0;
+        }
+
+        .columns {
+            padding: 1%;
+            margin: 1%;
+            width: 22%;
+            border: 1px solid gray;
+            display: inline-block;
+            text-align: center;
+            border-radius: 10px;
+            background-color:ivory;
+        }
+
+        .good {
+            color: green;
+        }
+
+        .bad {
+            color: red;
+        }
+
+        .activitybox {
+            overflow: auto;
+            height: 220px;
+            width: 100%;
+            border: 1px solid gray;
+            margin: 10px 0px;
+            text-align: left;
+            background-color:ivory;
+        }
+
+        img {
+            width: 150px;
+            display: block;
+            margin: 20px;
+        }
+
+        .dollars h4,
+        .dollars input {
+            display: inline-block;
+            margin: 10px;
+        }
+
+        .log {
+            padding-top: 10px;
+        }
+        .container {
+            text-align:center;
+        }
+    </style>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="container">
+            {% if "win" in request.session%}
+            <h1 class="win, mx-auto">Congratulations, you WON!!!</h1>
+            {% load static %}
+            <img src='{% static "prize.png" %}' alt="Nice Job!" class="mx-auto">
+            <h3>You made ${{ request.session.balance }} in {{ request.session.turn }} turns!</h3>
+            {% elif "lose" in request.session %}
+            <h1 class="win, mx-auto">Better luck next time.</h1>
+            <h3>You made only ${{ request.session.balance }} in {{ request.session.turn }} turns!</h3>
+            {% load static %}
+            <img src='{% static "game-over.png" %}' alt="Too bad!" class="mx-auto">
+            {% elif "winend" not in request.session %}
+            <form action="/setconditions" method="POST">
+                {% csrf_token %}
+                <h4>How much money do you want to try to make? Default is $100.</h4>
+                <input type="number" name="wincondition">
+                <h4>How many turns would you like to try to make it in? Default is 10 turns.</h4>
+                <input type="number" name="turnend">
+                <input type="submit" class="btn btn-primary" value="Set Your Goals!">
+            </form>
+            {% else %}
+            <h1>Let's Make Some Money!!!</h1>
+            <h2>Try to get {{request.session.winend}} in {{request.session.turnend}} turns</h2>
+            <div class="dollars">
+                <h4>Bank Account Balance: </h4>
+                <input type="number" name="dollars" value="{{ request.session.balance }}" readonly>
+                <h4>Turn Count:</h4>
+                <input type="number" name="turn" value="{{ request.session.turn }}" readonly>
+            </div>
+        </div>
+        {% endif %}
+        {% if "win" not in request.session and "winend" in request.session and "lose" not in request.session%}
+        <form action="/process_money" method="POST" class="columns">
+            {% csrf_token %}
+            <h3>Work on the Farm</h3>
+            <p> (earns 10-20 dollars)</p>
+            {% load static %}
+            <img src='{% static "barn.png" %}' alt="Go Mining!" class="mx-auto">
+            <input type="hidden" name="building" value="farm">
+            <input type="submit" class="btn btn-primary" value="Farm for Gold!">
+        </form>
+        <form action="/process_money" method="POST" class="columns">
+            {% csrf_token %}
+            <h3>Go Mining</h3>
+            <p> (earns 5-10 dollars)</p>
+            {% load static %}
+            <img src='{% static "mining.png" %}' alt="Go Mining!" class="mx-auto">
+            <input type="hidden" name="building" value="cave">
+            <input type="submit" class="btn btn-primary" value="Spelunk for Gold!">
+        </form>
+        <form action="/process_money" method="POST" class="columns">
+            {% csrf_token %}
+            <h3>Stay at Home</h3>
+            <p> (earns 2-5 dollars)</p>
+            {% load static %}
+            <img src='{% static "house.png" %}' alt="Go Mining!" class="mx-auto">
+            <input type="submit" class="btn btn-primary" value="Work from Home!">
+            <input type="hidden" name="building" value="home">
+        </form>
+        <form action="/process_money" method="POST" class="columns">
+            {% csrf_token %}
+            <h3>Visit the Casino</h3>
+            <p> (earns/takes 0-50 dollars)</p>
+            {% load static %}
+            <img src='{% static "gamble.png" %}' alt="Go Mining!" class="mx-auto">
+            <input type="submit" class="btn btn-primary" value="Bet on Black!">
+            <input type="hidden" name="building" value="casino">
+        </form>
+        {% endif %}
+        <div class="log">
+            <h4>Activity Log</h4>
+            <div class="activitybox">
+                <ul>
+                    {% for act in request.session.activity reversed %}
+                    {{ act|safe }}
+                    {% empty %}
+                    Get started by setting your goals! If you don't set your goals, they will default to $100 in 10 turns.
+                    {% endfor %}
+                </ul>
+            </div>
+            <form action="/playagain" method="POST">
+                {% csrf_token %}
+                <input type="submit" class="btn btn-primary" value="Reset Balance">
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
